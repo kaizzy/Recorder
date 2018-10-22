@@ -90,6 +90,10 @@ namespace Recorder5
             //wave 出力
             waveWriter = new WaveFileWriter(save.FileName, sourceStream.WaveFormat);
 
+
+            //Label
+            this.Label_Status.Text = "録音中" + "\r\n" + "開始時間:" + DateTime.Now; ;
+
             //録音開始
             sourceStream.StartRecording();
 
@@ -116,6 +120,9 @@ namespace Recorder5
             waveWriter?.Dispose();
             waveWriter = null;
 
+            //Label
+            this.Label_Status.Text = "待機中";
+
 
 
         }
@@ -131,7 +138,8 @@ namespace Recorder5
             string localPath = @"D:\Temp\";
             string fileName = "translate.wav";
 
-
+            //label
+            this.Label_Status.Text = "Google Cloud ストレージ へアップ中" + "\r\n" + "開始時間:" + DateTime.Now;
 
             try
             {
@@ -149,14 +157,15 @@ namespace Recorder5
                 //Console.WriteLine(exc.Message);
                 return;
             }
+
+            //label
+            this.Label_Status.Text = "待機中";
         }
 
         static object AsyncRecognize(string storageUri)
         {
             var speech = SpeechClient.Create();
-            DateTime Start_time;
-
-            Start_time = DateTime.Now;
+            DateTime Start_time = DateTime.Now;
 
             var longOperation = speech.LongRunningRecognize(
                 new RecognitionConfig()
@@ -177,7 +186,9 @@ namespace Recorder5
                     File.AppendAllText(@"D:\temp\transcript.txt", alternatime.Transcript + Environment.NewLine);                    
                 }
             }
-            MessageBox.Show("開始:" + Start_time + "  終了：" + DateTime.Now + "完了");
+
+            DateTime End_time = DateTime.Now;
+            MessageBox.Show("利用時間: " +  Convert.ToString(End_time-Start_time));
             return 0;
         }
         private void btn_toText_Click(object sender, EventArgs e)
@@ -189,9 +200,15 @@ namespace Recorder5
             //File_Name.Text = "storage URI: " + storageUri;
 
             //System.Threading.Thread.Sleep(50);
-            
+
+            //label
+            this.Label_Status.Text = "テキスト変換中" + "\r\n" + "開始時間:" + DateTime.Now;
+
+
             AsyncRecognize(storageUri);
 
+            //label
+            this.Label_Status.Text = "待機中";
             //Console.ReadKey();
 
 
@@ -202,6 +219,11 @@ namespace Recorder5
             string s;
             string text = "";
             FileStream fin;
+            DateTime Start_time = DateTime.Now;
+
+            //label
+
+            this.Label_Status.Text = "英語変換中" + "\r\n" + "開始時間:" + DateTime.Now;
 
             fin = new FileStream(@"D:\Temp\transcript.txt", FileMode.Open);
             StreamReader fstr_in = new StreamReader(fin);
@@ -220,8 +242,14 @@ namespace Recorder5
 
             TranslationClient client = TranslationClient.Create();
             var response = client.TranslateText(text, targetLanguageCode, sourceLanguageCode);
+            //string response = client.TranslateText(text, targetLanguageCode, sourceLanguageCode);
 
-            File.AppendAllText(@"D:\temp\English_txt.txt", Convert.ToString(response));
+            File.AppendAllText(@"D:\temp\English_txt.txt", Convert.ToString(response.TranslatedText));
+            
+            DateTime End_time = DateTime.Now;            
+            MessageBox.Show("利用時間: " + Convert.ToString(End_time-Start_time));
+
+            this.Label_Status.Text = "待機中";
             //Console.WriteLine(resonse.TranslatedText);
             //Console.ReadKey();
 

@@ -35,6 +35,7 @@
             this.btn_Upload = new System.Windows.Forms.Button();
             this.btn_toText = new System.Windows.Forms.Button();
             this.btn_translat = new System.Windows.Forms.Button();
+            this.Label_Status = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // button_refresh
@@ -105,11 +106,22 @@
             this.btn_translat.UseVisualStyleBackColor = true;
             this.btn_translat.Click += new System.EventHandler(this.btn_translat_Click);
             // 
+            // Label_Status
+            // 
+            this.Label_Status.AutoSize = true;
+            this.Label_Status.Font = new System.Drawing.Font("MS UI Gothic", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.Label_Status.Location = new System.Drawing.Point(26, 244);
+            this.Label_Status.Name = "Label_Status";
+            this.Label_Status.Size = new System.Drawing.Size(93, 27);
+            this.Label_Status.TabIndex = 7;
+            this.Label_Status.Text = "待機中";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.Label_Status);
             this.Controls.Add(this.btn_translat);
             this.Controls.Add(this.btn_toText);
             this.Controls.Add(this.btn_Upload);
@@ -120,6 +132,7 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -132,6 +145,7 @@
         private System.Windows.Forms.Button btn_Upload;
         private System.Windows.Forms.Button btn_toText;
         private System.Windows.Forms.Button btn_translat;
+        private System.Windows.Forms.Label Label_Status;
     }
 }
 
