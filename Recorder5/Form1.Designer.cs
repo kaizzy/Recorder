@@ -122,7 +122,7 @@
             this.btn_translat.Name = "btn_translat";
             this.btn_translat.Size = new System.Drawing.Size(297, 38);
             this.btn_translat.TabIndex = 6;
-            this.btn_translat.Text = "日本語テキストを英語テキストに変換";
+            this.btn_translat.Text = "日本語テキストを翻訳テキストに変換";
             this.btn_translat.UseVisualStyleBackColor = true;
             this.btn_translat.Click += new System.EventHandler(this.btn_translat_Click);
             // 
@@ -198,7 +198,9 @@
             "English",
             "France",
             "German",
-            "China"});
+            "China",
+            "Hawaii",
+            "Russia"});
             this.List_Language.Location = new System.Drawing.Point(710, 54);
             this.List_Language.Name = "List_Language";
             this.List_Language.Size = new System.Drawing.Size(307, 104);

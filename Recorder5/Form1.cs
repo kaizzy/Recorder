@@ -196,7 +196,7 @@ namespace Recorder5
             }
 
             DateTime End_time = DateTime.Now;
-            MessageBox.Show("利用時間: " + Convert.ToString(End_time - Start_time));
+            //MessageBox.Show("利用時間: " + Convert.ToString(End_time - Start_time));
             return 0;
         }
         private void btn_toText_Click(object sender, EventArgs e)
@@ -217,7 +217,7 @@ namespace Recorder5
 
             //label
             this.Label_Status.Text = "待機中";
-            
+
 
         }
 
@@ -234,7 +234,7 @@ namespace Recorder5
 
             //label
 
-            this.Label_Status.Text = "英語変換中" + "\r\n" + "開始時間:" + DateTime.Now;
+            this.Label_Status.Text = "翻訳中" + "\r\n" + "開始時間:" + DateTime.Now;
 
 
             //日本語ファイルを指定する
@@ -251,21 +251,21 @@ namespace Recorder5
 
             //日本語DBへのアップロード用のtext_id
             //string s2 = DateTime.Now.ToString("yyMMddHH"); 
-            string s2 = DateTime.Now.ToString("yyMMddHHMM");
-                        
-           long text_id = long.Parse(s2) * 100 + 1; // 初期値は、yymmddHHMM001
+            string s2 = DateTime.Now.ToString("yyMMddHHmm");
+
+            long text_id = long.Parse(s2) * 100 + 1; // 初期値は、yymmddHHMM001
 
 
 
             while ((line = fstr_in.ReadLine()) != null)
             {
 
-                Japanese_Upload(line,text_id);  //日本語DBへアップロード
+                Japanese_Upload(line, text_id);  //日本語DBへアップロード
                 text_id++;
 
                 text = text + line;
                 text = text + "\r\n";  //改行コード追加　　https://www.ipentec.com/document/csharp-text-load-from-file-line                
-            }            
+            }
             fstr_in.Close();
 
 
@@ -273,25 +273,34 @@ namespace Recorder5
             if (this.List_Language.SelectedItems.Count == 0) return;
 
 
-             targetLanguageCode = List_Language.SelectedItem.ToString();
+            targetLanguageCode = List_Language.SelectedItem.ToString();
 
             switch (this.List_Language.SelectedItem)
             {
-                case  "English":
+                case "English":
                     targetLanguageCode = "en";
                     break;
 
                 case "China":
-                    targetLanguageCode = "chaina";
+                    targetLanguageCode = "zh-CN";
                     break;
 
                 case "German":
-                    targetLanguageCode = "German";
+                    targetLanguageCode = "de";
                     break;
 
                 case "France":
                     targetLanguageCode = "fr";
                     break;
+
+                case "Russia":
+                    targetLanguageCode = "ru";
+                    break;
+
+                case "Hawaii":
+                    targetLanguageCode = "haw";
+                    break;
+
             }
 
 
@@ -306,15 +315,19 @@ namespace Recorder5
 
             // Status 用
             DateTime End_time = DateTime.Now;
-            MessageBox.Show("利用時間: " + Convert.ToString(End_time - Start_time));
+            //MessageBox.Show("利用時間: " + Convert.ToString(End_time - Start_time));
 
             this.Label_Status.Text = "待機中" + "\r\n" + @" C:\temp\English.txtで保存";
             //Console.WriteLine(resonse.TranslatedText);
             //Console.ReadKey();
 
+
+            TransferText_Upload(targetLanguageCode,s2);
+
+
         }
 
-        static void Japanese_Upload(string line,long text_id)   //日本語DBへアップロード
+        static void Japanese_Upload(string line, long text_id)   //日本語DBへアップロード
         {
             //mySQL on Azureにデータ蓄積
             //MySQLとの接続情報
@@ -323,7 +336,7 @@ namespace Recorder5
             string pass = "passworD@0";
             string database = "khondadb";
             string charset = "sjis";
-            
+
             string connectionString = string.Format("Server={0};Database={1};Uid={2};Pwd={3}; Charset={4};", server, database, user, pass, charset);
             //https://ameblo.jp/ringotabeta/entry-10608741673.html
 
@@ -348,9 +361,12 @@ namespace Recorder5
             }
             catch (MySqlException MEx)
             {
-                MessageBox.Show("エラー");
+                MessageBox.Show(MEx.Message);
             }
         }
+
+
+
 
 
         private void listview_sources_SelectedIndexChanged(object sender, EventArgs e)
@@ -358,40 +374,70 @@ namespace Recorder5
 
         }
 
-        private void btn_keyPhase_Click(object sender, EventArgs e)　//英語テキストからkeyphaseを抽出
+
+        private void TransferText_Upload(string targetLanguageCode, string s2)　//翻訳テキストからアップロード
         {
 
 
             string PostJson = "";
             string ResponseJson = "";
             string English_text = "";
+            
+            //text_id再作成
+            long text_id = long.Parse(s2) * 100 + 1; // 初期値は、yymmddHHMM001
+            
+            //JSONファイル作成 ＆ 翻訳テキストを都度アップロード 
+            MakeJSON(ref PostJson, English_text, text_id, targetLanguageCode);   //参照渡し：https://dobon.net/vb/dotnet/beginner/byvalbyref.html                                               
 
+
+            //以下 KeyPhase 抽出フェーズ
+            this.Label_Status.Text = "Post中";
+            KeyPhase_MakeRequest(PostJson, ref ResponseJson);    //KeyPhase抽出リクエスト
+
+            this.Label_Status.Text = "MySQLにアップロード中";
+            KeyPhase_UploadMySQL(ResponseJson, text_id);  //mySQLにアップロード 
+
+            this.Label_Status.Text = "完了";
+
+        }
+
+
+        private void btn_keyPhase_Click(object sender, EventArgs e)　//英語テキストからkeyphaseを抽出
+        {
+            MessageBox.Show("サービス停止中");
+            /***
+
+            string PostJson = "";
+            string ResponseJson = "";
+            string English_text = "";
+            
+            
             //DBへのアップロード用のtext_id
             string s2 = DateTime.Now.ToString("yyMMddHH");
             int text_id = int.Parse(s2) * 100 + 1; // 初期値は、yyMMddHH001
 
 
             //JsonFile作成           
-            MakeJSON(ref PostJson,English_text,ref text_id);   //参照渡し：https://dobon.net/vb/dotnet/beginner/byvalbyref.html                                               
+            MakeJSON(ref PostJson,English_text, text_id);   //参照渡し：https://dobon.net/vb/dotnet/beginner/byvalbyref.html                                               
 
             this.Label_Status.Text = "Post中";
-            MakeRequest(PostJson,ref ResponseJson);
+            KeyPhase_MakeRequest(PostJson,ref ResponseJson, targetLanguageCode);
 
              this.Label_Status.Text = "MySQLにアップロード中";
-            UploadMySQL(ResponseJson,text_id);  //mySQLにアップロード 
+            KeyPhase_UploadMySQL(ResponseJson,text_id);  //mySQLにアップロード 
             
               this.Label_Status.Text = "完了";
-
+              ***/
         }
 
-        static void MakeJSON(ref string PostJson,string English_text,ref int text_id)
+        static void MakeJSON(ref string PostJson, string English_text, long text_id, string targetLanguageCode)
         {
 
             int counter = 1;
             string line;
 
-            //string English_text="";
 
+            /****
             //英語テキストを指定する
             OpenFileDialog ofd = new OpenFileDialog();
 
@@ -401,10 +447,12 @@ namespace Recorder5
 
             }
 
-            //textファイルの読み込み
-            //StreamReader sr = new StreamReader(@"D:\SelfStudy\PDF1\UFR.txt", Encoding.GetEncoding("shift_jis"));
             StreamReader sr = new StreamReader(English_text, Encoding.GetEncoding("shift_jis"));
-            
+            ***/
+
+            //textファイルの読み込み固定
+            StreamReader sr = new StreamReader(@"C:\Temp\English.txt", Encoding.GetEncoding("shift_jis"));
+
 
             //ルートオブジェクトをインスタンス化
             RootObject RO = new RootObject()
@@ -423,10 +471,10 @@ namespace Recorder5
                 userdata.language = "en";
                 userdata.id = Convert.ToString(counter);  //https://www.sejuku.net/blog/44977
                 userdata.text = line;
-                  
 
-                  English_Upload(line,text_id);  //英語テキストをMySQLに保存
-                  text_id++;
+
+                English_Upload(line, text_id, targetLanguageCode);  //英語テキストをMySQLに保存
+                text_id++;
 
                 counter++;
                 RO.documents.Add(userdata);
@@ -436,7 +484,7 @@ namespace Recorder5
             sr.Close();
         }
 
-        static void English_Upload(string line,int text_id)
+        static void English_Upload(string line, long text_id, string targetLanguageCode)
         {
             //mySQL on Azureにデータ蓄積
             //MySQLとの接続情報
@@ -452,14 +500,15 @@ namespace Recorder5
             {
                 MySqlConnection MyCN = new MySqlConnection(connectionString);
                 MyCN.Open();
-               
-                        //SQL文
-                        string strSQL = @"insert into English_tbl(English_txt,input_date,text_id) values (@English_txt,@input_date,@text_id)";
-                        MySqlCommand MyCmd = new MySqlCommand(strSQL, MyCN);
-                        
-                        MyCmd.Parameters.Add(new MySqlParameter("@English_txt", line));
-                        MyCmd.Parameters.Add(new MySqlParameter("@input_date", DateTime.Now.ToString("yyyy-MM-dd")));
-                        MyCmd.Parameters.Add(new MySqlParameter("@text_id", text_id));
+
+                //SQL文
+                string strSQL = @"insert into English_tbl(English_txt,input_date,text_id,language_code) values (@English_txt,@input_date,@text_id,@language_code)";
+                MySqlCommand MyCmd = new MySqlCommand(strSQL, MyCN);
+
+                MyCmd.Parameters.Add(new MySqlParameter("@English_txt", line));
+                MyCmd.Parameters.Add(new MySqlParameter("@input_date", DateTime.Now.ToString("yyyy-MM-dd")));
+                MyCmd.Parameters.Add(new MySqlParameter("@text_id", text_id));
+                MyCmd.Parameters.Add(new MySqlParameter("@language_code", targetLanguageCode));
 
                 MyCmd.ExecuteNonQuery();
 
@@ -467,14 +516,13 @@ namespace Recorder5
             }
             catch (MySqlException MEx)
             {
-                MessageBox.Show("エラー");
+                MessageBox.Show(MEx.Message);
             }
         }
 
 
-        //Make Request 
 
-        static void MakeRequest(string PostJson,ref string responseJson)
+        static void KeyPhase_MakeRequest(string PostJson, ref string responseJson)
         {
             var uri = "https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases";
 
@@ -504,7 +552,7 @@ namespace Recorder5
             responseJson = WSReader.ReadToEnd();
 
             //string result = WSReader.ReadToEnd();
-            
+
 
 
             /*****
@@ -533,10 +581,9 @@ namespace Recorder5
            ******/
         }
 
-        //Make Request 
 
-        static void UploadMySQL(string ResponseJson,int text_id)
-        {           
+        static void KeyPhase_UploadMySQL(string ResponseJson, long text_id)
+        {
 
             //mySQL on Azureにデータ蓄積
             //MySQLとの接続情報
@@ -553,24 +600,25 @@ namespace Recorder5
                 MySqlConnection MyCN = new MySqlConnection(connectionString);
                 MyCN.Open();
                 //MessageBox.Show("MySQL on Azureに接続できた");
-                               
+
                 //デシリアライズでデータを取り出そう
                 Re_RootObject re_RO = JsonConvert.DeserializeObject<Re_RootObject>(ResponseJson);
 
+                /****
                 //IDとKeyPhaseを出力
                 //int count_i = 1; //Text_id
 
                 //DBへのアップロード用のtext_id (再初期化）
                 string s2 = DateTime.Now.ToString("yyMMddHH");
                 text_id = int.Parse(s2) * 100 + 1; // 初期値は、yyMMddHH001
-
+                *****/
 
                 int count_j = 1;  //keyphase id
                 foreach (Re_Document re_Do in re_RO.documents)
-                {                                  
+                {
                     foreach (string keys in re_Do.keyPhrases)
                     {
-                        
+
                         //SQL文
                         string strSQL = @"insert into keyphasetbl(text_id,KeyPhase_id,Sentence,KeyPhase,Input_date) values (@text_id,@KeyPhase_id,@Sentense,@keyphase,@input_date)";
                         MySqlCommand MyCmd = new MySqlCommand(strSQL, MyCN);
@@ -584,7 +632,7 @@ namespace Recorder5
 
                         MyCmd.ExecuteNonQuery();
 
-                        count_j = count_j+1;
+                        count_j = count_j + 1;
                     }
                     //count_i = count_i+1;
                     text_id++;
@@ -592,11 +640,16 @@ namespace Recorder5
             }
             catch (MySqlException MEx)
             {
-                MessageBox.Show("エラー");
+                MessageBox.Show(MEx.Message);
             }
         }
 
         private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void List_Language_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }
@@ -634,6 +687,6 @@ namespace Recorder5
         public List<Re_Document> documents { get; set; }
         public List<object> errors { get; set; }
     }
-               
+
 }
 
